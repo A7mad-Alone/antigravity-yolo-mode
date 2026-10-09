@@ -151,6 +151,8 @@ def inspect_pane_and_approve(session_name: str, target: str, agy_pid: int):
     if "Run this command?" in content and ("1. Yes, run command" in content or "1. Yes" in content):
         has_prompt = True
     elif any(phrase in content for phrase in [
+        "Accept this file edit?",
+        "Yes, accept this change",
         "Allow creation of this file?",
         "Allow edit",
         "Allow modification",
