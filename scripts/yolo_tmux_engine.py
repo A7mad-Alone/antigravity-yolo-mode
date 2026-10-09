@@ -6,8 +6,9 @@ Monitors Antigravity running inside tmux sessions.
 When YOLO Mode is active:
 - Scans tmux pane buffer every 0.15s for tool confirmation prompts.
 - Inspects the command against strict catastrophic security rules.
+- Whitelists safe operations (including fast-forward git push, codex edits).
+- If dangerous/catastrophic (e.g. rm -rf /, git push --force): Leaves prompt untouched for Mr. Stark to review manually.
 - If safe: Instantly sends '1\n' via `tmux send-keys` to auto-approve.
-- If dangerous/catastrophic: Pauses and leaves prompt untouched for Mr. Stark to review manually.
 """
 
 import sys
@@ -23,16 +24,20 @@ STATE_FILE = Path.home() / ".gemini" / "yolo_sessions.json"
 PID_FILE = Path.home() / ".gemini" / "yolo_tmux_engine.pid"
 LOG_FILE = Path.home() / ".gemini" / "yolo_tmux_engine.log"
 
+# Catastrophic operations that must NEVER be auto-approved
 CATASTROPHIC_PATTERNS = [
-    r"\brm\s+-[rfRF]{1,4}\s+/\b",
-    r"\brm\s+-[rfRF]{1,4}\s+/\*",
+    r"\brm\s+-[rf]{1,4}\s+/(?:\s|$|\*)",
     r"\bmkfs\b",
     r":\(\)\s*\{\s*:\|:&\s*\}\s*;",
     r">\s*/dev/sd[a-z]",
     r">\s*/dev/nvme[0-9]",
     r"\bdd\s+if=/dev/zero\s+of=/dev/sd",
-    r"\bchmod\s+-R\s+777\s+/\b",
-    r"\bchown\s+-R\s+.*\s+/\b",
+    r"\bchmod\s+-r\s+777\s+/(?:\s|$|\*)",
+    r"\bchown\s+-r\s+.*\s+/(?:\s|$|\*)",
+    # Guard against destructive git pushes (force pushing, delete remote branch)
+    r"\bgit\s+push\b.*(--force|-f|\+refs/)",
+    r"\bgit\s+push\b.*:\w+",  # git push origin :branch (branch deletion)
+    r"\bgit\s+push\b.*--delete",
 ]
 
 def log(msg: str):
@@ -149,7 +154,7 @@ def inspect_pane_and_approve(target: str, agy_pid: int):
     # Safety check
     if cmd_text and is_catastrophic(cmd_text):
         log(f"🛡️ SAFETY INTERVENTION: Blocked auto-approval for catastrophic command on {target}: {cmd_text[:60]}")
-        # Do not send keys; let user review
+        # Do not send keys; let Mr. Stark review manually
         return
 
     # Auto-approve by sending '1' then Enter
