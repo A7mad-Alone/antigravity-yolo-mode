@@ -1,62 +1,45 @@
-# Antigravity YOLO Mode
+# Antigravity YOLO Mode (Tmux Autonomous Engine)
 
-A native, standalone autonomous execution mode for **Google Antigravity (`agy`)**, completely decoupled from Coucou or other UI companions.
+A native, standalone autonomous execution mode for **Google Antigravity (`agy`)**, completely decoupled from Coucou or other UI companions, built specifically for tmux-based workflows with catastrophic command safety.
 
-## Features
+## Key Features
 
 - **Togglable via Slash Command:**
   - `/yolo` (or `/yolo on`) — Activate autonomous mode for the current session.
   - `/yolo off` — Revert to guarded mode (standard interactive approval prompts).
   - `/yolo status` — Inspect the active session's YOLO state.
-- **Dual Engine Control:**
-  - Coordinates both Antigravity's native `toolPermission: always-proceed` setting and `PreToolUse` lifecycle hooks.
-  - Instantaneous real-time sync without requiring CLI restarts.
-- **Automatic Reset on Session Exit:**
-  - Monitored by a lightweight background supervisor (`yolo_watchdog.py`) attached to the `agy` process PID.
-  - Shell exit wrapper in `~/.bashrc` provides a zero-failure guarantee.
+- **Tmux Autonomous Approver (`yolo_tmux_engine.py`):**
+  - Monitors the active Antigravity tmux pane buffer in real time (0.15s polling).
+  - Automatically identifies tool confirmation modals (`Run this command?`, `Allow creation of this file?`, `Allow access to this URL?`).
+  - Sends immediate affirmative keystrokes (`1\n`) directly to the TUI pane.
+- **Catastrophic Security Guardrails:**
+  - Hardcoded regex patterns block auto-approval of destructive operations:
+    - Recursive root deletions (`rm -rf /`, `rm -rf /*`)
+    - Filesystem formatting (`mkfs`)
+    - Fork bombs (`:(){ :|:& };:`)
+    - Direct disk/partition block overwrites (`> /dev/sda`, `dd if=/dev/zero of=/dev/sd*`)
+    - Wide permission escalations (`chmod -R 777 /`, `chown -R ... /`)
+  - Catastrophic operations pause automatically for human review even in YOLO mode.
+- **Zero-Failure Reset on Session Exit:**
+  - When exiting the session, `~/.bashrc` wrapper automatically deactivates YOLO mode.
   - Every new Antigravity session **always starts in guarded mode by default**.
-- **Catastrophic Action Safeguards:**
-  - Hardcoded failsafes intercept and block auto-approval of destructive operations (e.g. `rm -rf /`, `mkfs`, fork bombs, raw device writes), forcing manual human confirmation even in YOLO mode.
 
 ## Architecture
 
-- **`scripts/toggle_yolo.py`**: State toggle utility invoked by the `/yolo` skill. Synchronizes `settings.json`, session state, and starts the supervisor.
-- **`scripts/yolo_watchdog.py`**: Lightweight background process supervisor that tracks the `agy` session PID and automatically resets permissions upon session exit.
-- **`scripts/yolo_gate.py`**: The Antigravity lifecycle hook handler for `PreToolUse` events with catastrophic command filtering.
+- **`scripts/yolo_tmux_engine.py`**: Background supervisor daemon that scans tmux panes and handles prompt responses with safety checks.
+- **`scripts/toggle_yolo.py`**: State toggle utility invoked by the `/yolo` skill to activate/deactivate the tmux engine.
 - **`SKILL.md`**: The Antigravity skill declaration mounted in the Capability Hub.
 
-## Installation & Hook Registration
+## Usage
 
-Registered in `~/.gemini/config/hooks.json`:
-
-```json
-{
-  "yolo-mode": {
-    "enabled": true,
-    "PreToolUse": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 /home/a7mad-alone/starkslab/services/network-storage/internal-nas/Codex/Skills/yolo-mode/scripts/yolo_gate.py --event PreToolUse"
-          }
-        ]
-      }
-    ]
-  }
-}
+Inside any Antigravity session running in `tmux`:
+```bash
+/yolo on     # ⚡ Autonomous mode enabled
+/yolo off    # 🛡️ Guarded mode restored
+/yolo status # Check current mode
 ```
 
-## Shell Auto-Reset Wrapper
-
-In `~/.bashrc`:
-
+Or start a dedicated autonomous session directly:
 ```bash
-agy() {
-    command agy "$@"
-    local _agy_exit=$?
-    python3 /home/a7mad-alone/starkslab/services/network-storage/internal-nas/Codex/Skills/yolo-mode/scripts/toggle_yolo.py reset-default >/dev/null 2>&1 || true
-    return $_agy_exit
-}
+agy --dangerously-skip-permissions
 ```
