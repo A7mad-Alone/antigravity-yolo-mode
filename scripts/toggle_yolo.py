@@ -9,6 +9,7 @@ Controls:
 
 import sys
 import os
+import time
 import json
 import subprocess
 import signal
@@ -87,6 +88,12 @@ def start_tmux_engine():
         )
     except Exception as e:
         print(f"Error starting tmux engine: {e}")
+
+def restart_tmux_engine():
+    stop_tmux_engine()
+    time.sleep(0.3)
+    start_tmux_engine()
+    print("🔄 YOLO Tmux Engine restarted.")
 
 def stop_tmux_engine():
     if PID_FILE.exists():
@@ -186,7 +193,7 @@ def print_status(session_id: str):
 
 def main():
     parser = argparse.ArgumentParser(description="Toggle YOLO Mode for an Antigravity tmux session")
-    parser.add_argument("action", nargs="?", choices=["on", "off", "status", "toggle", "finish-task", "reset-default"], default="toggle")
+    parser.add_argument("action", nargs="?", choices=["on", "off", "status", "toggle", "finish-task", "restart-engine", "reset-default"], default="toggle")
     parser.add_argument("mode", nargs="?", choices=["session", "task"], default=None, help="Mode flavor for 'on' (session or task)")
     parser.add_argument("--mode", dest="opt_mode", choices=["session", "task"], default=None, help="Alternative flag for mode flavor")
     parser.add_argument("--session-id", default=None, help="Specific session/conversation ID")
@@ -194,6 +201,10 @@ def main():
 
     session_id = args.session_id or get_current_session_id()
     target_mode = args.mode or args.opt_mode or "session"
+
+    if args.action == "restart-engine":
+        restart_tmux_engine()
+        return
 
     if args.action == "on":
         activate_yolo(session_id, mode=target_mode)
