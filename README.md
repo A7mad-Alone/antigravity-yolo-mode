@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/A7mad-Alone/antigravity-yolo-mode/main/assets/banner.png" alt="Antigravity YOLO Mode Banner" width="720" onerror="this.style.display='none'" />
+  <img src="assets/banner.png" alt="Antigravity YOLO Mode Banner" width="720" />
 </p>
 
 # Antigravity YOLO Mode (Tmux Autonomous Engine)
@@ -106,13 +106,13 @@ While safe, answering dozens of modal prompts breaks workflow momentum when buil
 
 ```mermaid
 flowchart TD
-    A["Antigravity CLI (agy in tmux)"] -->|TUI renders confirmation prompt| B["Tmux Pane Buffer"]
-    B -->|Scanned every 0.15s| C["YOLO Tmux Supervisor Engine"]
+    A["Antigravity CLI (agy in tmux)"] -->|"TUI renders confirmation prompt"| B["Tmux Pane Buffer"]
+    B -->|"Scanned every 0.15s"| C["YOLO Tmux Supervisor Engine"]
     C --> D{"Catastrophic Security Gate"}
-    D -->|Safe Command / File Edit| E["Inject Keystroke ('1' + Enter)"]
-    E -->|Instant Approval (0.15s)| A
-    D -->|Destructive / Blacklisted Pattern| F["Block Keystroke & Log Intervention"]
-    F -->|Wait for Human Confirmation| G["Interactive Human-in-the-Loop"]
+    D -->|"Safe Command / File Edit"| E["Inject Keystroke ('1' + Enter)"]
+    E -->|"Instant Approval (0.15s)"| A
+    D -->|"Destructive / Blacklisted Pattern"| F["Block Keystroke & Log Intervention"]
+    F -->|"Wait for Human Confirmation"| G["Interactive Human-in-the-Loop"]
 ```
 
 1. **State Registry (`~/.gemini/yolo_sessions.json`):** Tracks which tmux sessions currently have autonomous privileges.
