@@ -268,9 +268,9 @@ If this tool saves you time or prevents an accidental terminal disaster, conside
 ### Contributing
 Contributions, bug reports, and pattern suggestions are welcome! Feel free to open an issue or submit a pull request on GitHub.
 
-### Author
-* **Ahmad Adham** ([@A7mad-Alone](https://github.com/A7mad-Alone))
-* Engineering Lead & Creator of Stark's Lab
+### Authors & Credits
+* **Ahmad Adham** ([@A7mad-Alone](https://github.com/A7mad-Alone)) — Engineering Lead & Creator of Stark's Lab
+* **J.A.R.V.I.S.** — Autonomous AI Co-Engineer & Homelab Orchestrator (Stark's Lab Intelligence System)
 
 ### License
 This project is open-source software licensed under the [MIT License](LICENSE).
